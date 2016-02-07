@@ -1,0 +1,243 @@
+#!/usr/bin/python
+
+import json
+import sys
+import os.path
+import jinja2
+from termcolor import colored, cprint
+
+class TemplateSystem:
+
+	def __init__(self, config, templateDirectory, destinationDirectory, modelNames, templateNames):
+		self.config = config
+		self.templateDirectory = templateDirectory
+		self.destinationDirectory = destinationDirectory
+		self.modelNames = modelNames
+		self.initializeTemplateEngine()
+		self.initializeTemplates(templateNames)
+
+	def initializeTemplateEngine(self):
+		templateLoader = jinja2.FileSystemLoader( searchpath="" )
+		self.templateEngine = jinja2.Environment( loader=templateLoader, lstrip_blocks=True, trim_blocks=True )
+		self.templateEngine.filters['controller'] = self.getControllerName
+		self.templateEngine.filters['plural'] = self.getPluralName
+		self.templateEngine.filters['controllerByAlias'] = self.getControllerNameByAlias
+		self.templateEngine.filters['structure'] = self.getStructure
+		self.templateEngine.filters['modelByAlias'] = self.getModelNameByAlias
+		self.templateEngine.filters['camelCase'] = self.getCamelCaseString
+		self.templateEngine.filters['relationships'] = self.getRelationships
+		self.templateEngine.filters['models'] = self.getModelsByRelationships
+		self.templateEngine.filters['css'] = self.getCssString
+
+	def initializeTemplates(self, templateNames):
+		self.templates = {}
+		for template in templateNames:
+			self.templates[template] = self.templateEngine.get_template( self.templateDirectory + "/" + template + ".j2" )
+		self.commonsTemplates = {}
+		self.commonsTemplates["list"] = self.templateEngine.get_template( self.templateDirectory + "/commons/list.j2" )
+		self.commonsTemplates["show"] = self.templateEngine.get_template( self.templateDirectory + "/commons/show.j2" )
+
+	def run(self):
+		for modelName in self.modelNames:
+			templateVars = {
+					"MODEL" : modelName,
+					"CONFIG": self.config["models"]
+					}
+			
+			# Generate commons files (show.html and list.html)
+			commonsPath = self.destinationDirectory+"/"+modelName+"/views/commons/"
+			if not os.path.exists(commonsPath):
+					os.makedirs(commonsPath)
+			for template in self.commonsTemplates:
+				commonsFile = open(commonsPath + "/" + template + ".html", "w")
+				commonsFile.write(self.commonsTemplates[template].render(templateVars))
+				commonsFile.close()
+
+			# Generate files (list.html, show.html, form.html, controller.js)
+			for templateType in self.templates:
+				path = self.destinationDirectory+"/"+modelName
+				
+				if templateType == "controller":
+					viewPath = path + "/controller"
+					fileName = self.getControllerName(modelName) + ".js"
+				else:
+					viewPath = path + "/views"
+					fileName = templateType + ".html"
+
+				if not os.path.exists(path):
+					os.makedirs(path)
+				if not os.path.exists(viewPath):
+					os.makedirs(viewPath)
+				
+				viewFile = open(viewPath+"/"+fileName, "w")
+				viewFile.write(self.templates[templateType].render(templateVars))
+				viewFile.close()
+
+			
+	# Filters
+
+	def getControllerName(self, model):
+		return model.replace("_"," ").title().replace(" ","") + "Controller"
+
+	def getPluralName(self, model):
+		return self.config["models"][model]["plural"]
+
+	def getControllerNameByAlias(self, alias, model):
+		return self.getControllerName(self.getModelNameByAlias(alias, model))
+	
+	def getModelNameByAlias(self, alias, model):
+		return self.config["models"][model]["relationships"][alias]["type"]
+
+	def getStructure(self, model):
+		return self.config["models"][model]["structure"]
+
+	def getStructureByAlias(self, alias, model):
+		return self.config["models"][self.getModelNameByAlias(alias, model)]["structure"]
+	
+	def getCamelCaseString(self, string):
+		camelCaseString =  string.replace("_"," ").title().replace(" ","")
+		return camelCaseString[:1].lower() + camelCaseString[1:]
+	
+	def getRelationships(self, model, isArray):
+		relationships = self.config["models"][model]["relationships"]
+		newRelationships = {}
+		for relationship in relationships:
+			if relationships[relationship]["isArray"] == isArray:
+				newRelationships[relationship] = relationships[relationship]
+		return newRelationships
+	
+	def getModelsByRelationships(self, relationships):
+		models = []
+		for model in relationships:
+			models.append(relationships[model]["type"])
+		return models
+
+	def getCssString(self, string):
+		return string.lower().replace("_","-")
+
+class HookStudIoPromt:
+
+	def __init__(self, systemName):
+		self.systemName = systemName.title()
+		self.welcomeColor = "cyan"
+		self.outputColor = "white"
+		self.promtColor = "grey"
+
+	def printWelcome(self):
+		title = "Welcome to HookStud.io {} System".format(self.systemName)
+		print("")
+		cprint("="*len(title), self.welcomeColor, attrs=["bold"])
+		cprint(title, self.welcomeColor, attrs=["bold"]) 
+		cprint("="*len(title), self.welcomeColor, attrs=["bold"]) 
+
+	def input(self):
+		cprint("HookStud.io $", self.promtColor, attrs=['bold'], end=" ")
+		return raw_input()
+	
+	def output(self, message):
+		print("")
+		cprint(message, self.outputColor, attrs=["bold"])
+
+	def error(self, message):
+		print("")
+		cprint(message, "red", attrs=["bold"])
+
+	def success(self, message):
+		print("")
+		cprint(message, "green", attrs=["bold"])
+
+class ScaffoldingPromtSystem:
+
+	def __init__(self):
+		self.promt = HookStudIoPromt("scaffolding")
+		self.promt.printWelcome()
+	
+	def step1(self):
+		self.promt.output("1. Enter the configuration.json path. (required)")
+		
+		configPath = self.promt.input()
+		
+		if not os.path.isfile(configPath):
+			self.promt.error("Error: The file doesn't exists.")
+			self.step1()
+		elif configPath[-5:] != ".json":
+			self.promt.error("Error: The configuration file must be in .json format.")
+			self.step1()
+		else:
+			with open(configPath) as jsonFile:
+				self.config = json.load(jsonFile)
+
+	def step2(self):
+		self.promt.output("2. Enter the template directory. ( optional - if omitted the directory will be set to \"./templates\" )")
+		
+		templateDirectory = self.promt.input()
+		
+		if templateDirectory == "":
+			self.templateDirectory = "./templates"
+		else:
+			self.templateDirectory = templateDirectory
+
+	def step3(self):
+		self.promt.output("3. Enter the destination directory. ( optional - if omitted the directory will be set to \"./exports\" )")
+		
+		destinationDirectory = self.promt.input()
+		
+		if destinationDirectory == "":
+			self.destinationDirectory = "./exports"
+		else:
+			self.destinationDirectory = destinationDirectory
+
+	def step4(self):
+		self.promt.output("4. Enter the model names seperated by \",\" ( optional - if omitted every models in configurations.json will be scaffolded. )")
+		
+		modelNames = self.promt.input()
+		
+		if modelNames == "":
+			self.modelNames = [name for name in self.config["models"]]
+		else:
+			self.modelNames = [name.strip() for name in modelNames.split(',')]
+			for name in self.modelNames:
+				if name not in self.config["models"]:
+					self.promt.error("Error: Some of the models doesn't exists in the configurations.json")
+					self.step4()
+
+	def step5(self):
+		self.promt.output("5. Enter the template names seperated by \",\" ( optional - if omitted \"list,show,form,controller\" will be used. )")
+		
+		templateNames = self.promt.input()
+		defaultTemplateNames = ["list", "show", "form", "controller"]
+
+		if templateNames == "":
+			self.templateNames = defaultTemplateNames
+		else:
+			self.templateNames = [name.strip() for name in templateNames.split(',')]
+			for name in self.templateNames:
+				if name not in defaultTemplateNames:
+					self.promt.error("Error: Some of the template names doesn't exists")
+					self.step5()
+
+	def finish(self):
+		self.promt.success("Successful Scaffolding!")
+		print("")
+
+	def run(self):
+		self.step1()
+		self.step2()
+		self.step3()
+		self.step4()
+		self.step5()
+		self.finish()
+
+if __name__ == '__main__':
+	
+	scaffoldPromt = ScaffoldingPromtSystem()
+	scaffoldPromt.run()
+
+	config = scaffoldPromt.config
+	templateDirectory = scaffoldPromt.templateDirectory
+	destinationDirectory = scaffoldPromt.destinationDirectory
+	modelNames = scaffoldPromt.modelNames	
+	templateNames = scaffoldPromt.templateNames
+
+	templateSystem = TemplateSystem(config, templateDirectory, destinationDirectory, modelNames, templateNames)
+	templateSystem.run()

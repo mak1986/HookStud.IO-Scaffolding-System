@@ -1,0 +1,32 @@
+<div class="box" 
+	ng-controller="{{ MODEL | controller}} as {{ MODEL | controller }}" 
+	ng-init="{{ MODEL | controller }}.show()">
+	
+	<div class="box-header with-border">
+		
+		<h3 class="box-title">{{ MODEL | replace("_", " ") | title }}</h3>
+		
+		<div class="box-tools" 
+			action-buttons-resource 
+			bind-controller="{{ MODEL | controller }}"></div>
+	
+	</div><!-- /.box-header -->
+	
+	<div class="box-body">
+		
+		<dl><!-- class="dl-horizontal" -->
+			
+			{% for FIELD in MODEL | structure %}
+			{% if 'show' in CONFIG[MODEL]['structure'][FIELD]["mode"] %}
+			<dt>{{FIELD | replace("_", " ") | title }}</dt><dd>{{'{{'}} {{ MODEL | controller }}.{{ MODEL | camelCase }}.{{ FIELD }} {{'}}'}}</dd>
+			
+			{% endif %}
+			{% endfor %}
+		</dl>
+	
+	</div><!-- /.box-body -->
+	
+	<div class="box-footer">
+	</div><!-- /.box-footer -->
+
+</div><!-- /.box -->

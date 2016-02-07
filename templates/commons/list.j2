@@ -1,0 +1,66 @@
+<div class="box" 
+	ng-controller="{{ MODEL | controller}} as {{ MODEL | controller}}" 
+	ng-init="{{ MODEL | controller }}.list()">
+	
+	<div class="box-header with-border">
+		
+		<h3 class="box-title">{{ MODEL | replace("_", " ") | title }} list</h3>
+		
+		<div class="box-tools" 
+			action-buttons-resource 
+			bind-controller="{{ MODEL | controller }}"></div>
+	
+	</div><!-- /.box-header -->
+	
+	<div class="box-body">
+		
+		<table class="table table-bordered table-hover"
+			id="table-group"> 
+			
+			<thead>
+				
+				<tr>
+			
+					<th class="table-index-column-width">#</th>
+					
+					{% for FIELD in CONFIG[MODEL]['structure'] %}
+					{% if 'list' in CONFIG[MODEL]['structure'][FIELD]["mode"] %}
+					<th>{{ FIELD | replace("_", " ") | title}}</th>
+					
+					{% endif %}
+					{% endfor %}
+					<th class="table-action-column-width">Actions</th>
+				
+				</tr>
+			
+			</thead>
+			
+			<tbody>
+				
+				<tr ng-repeat="(id, {{ MODEL | camelCase }}) in {{ MODEL | controller }}.{{ MODEL | plural }}">
+					
+					<td>{{'{{'}} $index + 1 {{'}}'}}</td>
+					
+					{% for FIELD in CONFIG[MODEL]['structure'] %}
+					{% if 'list' in CONFIG[MODEL]['structure'][FIELD]["mode"] %}
+					<td>{{'{{'}} {{ MODEL | camelCase }}.{{ FIELD }} {{'}}'}}</td>
+					
+					{% endif %}
+					{% endfor %}
+					<td action-buttons-list bind-buttons-type="list" 
+						bind-resource="{{ MODEL }}" 
+						bind-controller="{{ MODEL | controller }}">
+					</td>
+				
+				</tr>
+			
+			</tbody>
+		
+		</table>
+	
+	</div><!-- /.box-body -->
+	
+	<div class="box-footer">
+	</div><!-- /.box-footer -->
+
+</div><!-- /.box -->

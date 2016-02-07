@@ -1,0 +1,44 @@
+(function() {
+	'use strict';
+
+	function {{ MODEL | controller }}(CONFIG, CrudUtility, $routeParams, ResourceManager) {
+
+		var vm = CrudUtility.init(this, '{{ MODEL }}');
+
+		this.list = function() {
+			CrudUtility.list(vm, vm["type"]);
+		};
+
+		this.show = function() {
+			CrudUtility.show(vm, vm["type"]);
+		};
+
+		this.form = function(){
+			CrudUtility.form(vm, vm["type"]);
+		};
+
+		this.store = function(resource) {
+			CrudUtility.store(vm, vm["type"], resource);
+		};
+
+		this.update = function(resource) {
+			CrudUtility.update(vm, vm["type"], resource);
+		};
+		
+		this.destroy = function(resource) {
+			CrudUtility.destroy(vm, vm["type"], resource);
+		};
+
+	}
+
+	{{ MODEL | controller }}.$inject = [
+		'CONFIG',
+		'CrudUtility',
+		'$routeParams',
+		'ResourceManager'
+	];
+
+	angular
+		.module('Controllers')
+		.controller('{{ MODEL | controller }}', {{ MODEL | controller }});
+})();

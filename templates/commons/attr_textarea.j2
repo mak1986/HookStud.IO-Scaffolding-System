@@ -1,0 +1,5 @@
+		 				<textarea class="form-control 
+		 						id="textarea-{{ MODEL | css }}-{{ FIELD | css }}" 
+		 						placeholder="{{ FIELD | replace("_", " ") | title }}" 
+		 						rows="10"
+		 						ng-model="{{ MODEL | controller }}.{{ MODEL | camelCase }}.{{ FIELD }}"></textarea>

@@ -1,0 +1,90 @@
+{
+	"models": {
+
+		"user": {
+			"relationships": {
+				"groups": {
+					"type": "group",
+					"isArray": true,
+					"cascadeDelete": false
+				},
+				"preference": {
+					"type": "user_preference",
+					"isArray": false,
+					"cascadeDelete": false
+				}
+			},
+			"plural": "users",
+			"structure": {
+				"first_name": {
+					"type": "text",
+					"mode": ["list", "show", "create", "edit"]
+				},
+				"last_name": {
+					"type": "text",
+					"mode": ["show", "create", "edit"]
+				},
+				"username": {
+					"type": "text",
+					"mode": ["list", "show", "create"]
+				},
+				"email": {
+					"type": "text",
+					"mode": ["list", "show", "edit"]
+				},
+				"gender":{
+					"type": "bool",
+					"mode": ["list", "show", "create", "edit"]
+				},
+				"created_at": {
+					"type": "text",
+					"mode": ["show"]
+				},
+				"updated_at": {
+					"type": "text",
+					"mode": ["show"]
+				}
+			}
+		},
+		"user_preference":{
+			"relationships": {},
+			"plural": "userPreferences",
+			"structure": {
+				"language": {
+					"type": "text",
+					"mode": ["list", "show", "create", "edit"]
+				},
+				"remember_me": {
+					"type": "bool",
+					"mode": ["list", "show", "create", "edit"]
+				}
+			}
+		},
+		"group": {
+			"relationships": {},
+			"plural": "groups",
+			"structure": {
+				"name": {
+					"type": "text",
+					"mode": ["list", "show", "create", "edit"]
+				},
+				"description":{
+					"type": "textarea",
+					"mode": ["show","create","edit"]
+				},
+				"order": {
+					"type": "text",
+					"mode": ["list", "show", "create", "edit"]
+				},
+				"created_at": {
+					"type": "text",
+					"mode": ["show"]
+				},
+				"updated_at": {
+					"type": "text",
+					"mode": ["show"]
+				}
+			}
+		}
+	}
+}

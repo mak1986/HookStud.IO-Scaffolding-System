@@ -1,0 +1,28 @@
+<div class="row">
+
+ 	<div class="col-md-12" 
+ 		ng-include="SiteController.getCommonsTemplate('{{ MODEL }}', 'show')"></div><!-- /.col -->
+
+</div><!-- /.row -->
+
+{# note: show relationships is not array #}
+{% for MODEL in MODEL | relationships(False) | models %}
+<div class="row">
+
+ 	<div class="col-md-12" 
+ 		ng-include="SiteController.getCommonsTemplate('{{ MODEL }}', 'show')"></div><!-- /.col -->
+
+</div><!-- /.row -->
+
+{% endfor%}
+
+{# note: show relationships is array #}
+{% for MODEL in MODEL | relationships(true) | models %}
+
+<div class="row">
+
+ 	<div class="col-md-12" 
+ 		ng-include="SiteController.getCommonsTemplate('{{ MODEL }}', 'list')"></div><!-- /.col -->
+
+</div><!-- /.row -->
+{% endfor%}
