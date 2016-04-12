@@ -1,0 +1,18 @@
+			 				<textarea class="form-control" 
+		 						id="textarea-{{ MODEL | kebabCase }}-{{ FIELD | kebabCase }}" 
+		 						name="{{ FIELD }}"
+		 						placeholder="{{'{{'}} 'label.{{ FIELD }}' | hookFilterMachineNameTranslate | hookFilterTitle {{'}}'}}"
+		 						rows="5"
+		 						{% if CONFIG[MODEL]["structure"][FIELD]["translation"] == True %}
+		 						ng-model="{{ MODEL | controller }}.{{ MODEL | singular }}.{{ FIELD }}[{{ MODEL | controller }}.displayLanguage]"	 						
+		 						{% else %}
+		 						ng-model="{{ MODEL | controller }}.{{ MODEL | singular }}.{{ FIELD }}"	 						
+		 						{% endif %}
+		 						{% for VALIDATION in CONFIG[MODEL]['structure'][FIELD]['validation'] %}
+								{{ VALIDATION }}
+								{% if VALIDATION == "hook-validation-unique" %}
+								hook-validation-unique-bind-controller="{{ MODEL | controller }}"
+								hook-validation-unique-bind-model="{{ MODEL | controller }}.{{ MODEL | singular }}"
+								{% endif %}
+								{% endfor %}
+								></textarea>

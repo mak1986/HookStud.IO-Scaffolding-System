@@ -1,0 +1,16 @@
+							<div class="radio">
+								<label>
+									<input type="radio" 
+										ng-value="true"
+										ng-model="{{ MODEL | controller }}.{{ MODEL | singular }}.{{ FIELD }}"
+										ng-checked="{{ MODEL | controller }}.{{ MODEL | singular }}.{{ FIELD }}">
+									{{'{{'}} 'ui.yes' | hookFilterMachineNameTranslate | hookFilterCapitalize {{'}}'}}
+								</label>
+								<label>
+									<input type="radio" 
+										ng-value="false"
+										ng-model="{{ MODEL | controller }}.{{ MODEL | singular }}.{{ FIELD }}"
+										ng-checked="!{{ MODEL | controller }}.{{ MODEL | singular }}.{{ FIELD }}">
+									{{'{{'}} 'ui.no' | hookFilterMachineNameTranslate | hookFilterCapitalize {{'}}'}}
+								</label>
+							</div>

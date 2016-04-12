@@ -1,7 +1,7 @@
 (function() {
 	'use strict';
 
-	function {{ MODEL | controller }}(CONFIG, CrudUtility, $routeParams, ResourceManager) {
+	function {{ MODEL | controller }}($routeParams, CONFIG, CrudUtility, ResourceManager) {
 
 		var vm = CrudUtility.init(this, '{{ MODEL }}');
 
@@ -13,7 +13,7 @@
 			CrudUtility.show(vm, vm["type"]);
 		};
 
-		this.form = function(){
+		this.form = function() {
 			CrudUtility.form(vm, vm["type"]);
 		};
 
@@ -32,13 +32,13 @@
 	}
 
 	{{ MODEL | controller }}.$inject = [
+		'$routeParams',
 		'CONFIG',
 		'CrudUtility',
-		'$routeParams',
 		'ResourceManager'
 	];
 
 	angular
-		.module('Controllers')
+		.module('_Controllers')
 		.controller('{{ MODEL | controller }}', {{ MODEL | controller }});
 })();

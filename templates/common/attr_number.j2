@@ -1,0 +1,14 @@
+							<input class="form-control"
+									id="number-{{ MODEL | kebabCase }}-{{ FIELD | kebabCase }}" 
+									name="{{ FIELD }}"
+									placeholder="{{'{{'}} 'label.{{ FIELD }}' | hookFilterMachineNameTranslate | hookFilterTitle {{'}}'}}"
+									type="number"  
+									ng-model="{{ MODEL | controller }}.{{ MODEL | singular }}.{{ FIELD }}"
+									{% for VALIDATION in CONFIG[MODEL]['structure'][FIELD]['validation'] %}
+									{{ VALIDATION }}
+									{% if VALIDATION == "hook-validation-unique" %}
+									hook-validation-unique-bind-controller="{{ MODEL | controller }}"
+									hook-validation-unique-bind-model="{{ MODEL | controller }}.{{ MODEL | singular }}"
+									{% endif %}
+									{% endfor %}
+									>

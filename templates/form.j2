@@ -1,106 +1,168 @@
-<div class="row">
+<!-- Main model: {{ MODEL }} -->
+
+<div class="row"
+	ng-controller="{{ MODEL | controller}} as {{ MODEL | controller}}" 
+	ng-init="{{ MODEL | controller }}.form()">
+ 	{% if CONFIG[MODEL]["translation"] == True %}
+ 	<div class="col-md-8">
+ 	{% else %}
  	<div class="col-md-12">
+ 	{% endif %}
  		
-		<div class="box" 
-			ng-controller="{{ MODEL | controller}} as {{ MODEL | controller}}" 
-			ng-init="{{ MODEL | controller }}.form()">
+		<div class="box">
 
 			<div class="box-header with-border">
 
-				<h3 class="box-title">{{'{{'}} {{ MODEL | controller }}.mode | capitalize }} {{ MODEL | replace("_", " ") }}</h3>
+				<h3 class="box-title">
+					{{'{{'}} ('ui.' + {{ MODEL | controller }}.mode) | hookFilterMachineNameTranslate | hookFilterTitle {{'}}'}} {{'{{'}} 'model.{{ MODEL }}' | hookFilterMachineNameTranslate | hookFilterTitle {{'}}'}}
+				</h3>
 				
 				<div class="box-tools" 
-					action-buttons-resource 
-					bind-controller="{{ MODEL | controller }}"></div>
+					hook-action-button-box-tools 
+					hook-action-button-box-tools-bind-controller="{{ MODEL | controller }}"></div>
 
 			</div><!-- /.box-header -->
 			
-			<!-- form start -->
-			<form novalidate role="form">
-				
-				<div class="box-body">
-					{% for FIELD in CONFIG[MODEL]['structure'] %}
-					
-						{% if 'create' in CONFIG[MODEL]['structure'][FIELD]["mode"] or 'edit' in CONFIG[MODEL]['structure'][FIELD]["mode"] %}
-							{% if 'create' in CONFIG[MODEL]['structure'][FIELD]["mode"] and 'edit' in CONFIG[MODEL]['structure'][FIELD]["mode"] %}
-					<div class="form-group">
-							{% elif  'create' in CONFIG[MODEL]['structure'][FIELD]["mode"] %}
-					<div class="form-group" 
-						ng-show="{{ MODEL | controller }}.mode == 'create'">
-							{% else %}
-					<div class="form-group"
-						ng-show="{{ MODEL | controller }}.mode == 'edit'" >
-							{% endif %}
-						
-						<label for="{{ CONFIG[MODEL]['structure'][FIELD]['type'] }}-{{ MODEL | css }}-{{ FIELD | css }}">{{ FIELD | replace("_", " ") | title }}</label>
-						
-						{% include "templates/commons/attr_" + CONFIG[MODEL]['structure'][FIELD]['type'] + ".j2" %}
-
-					
-					</div><!-- /.form-group -->
-						{% endif %}
-					{% endfor %}
-
-					{# note: show relationships is not array #}
-					
-					{% for RELATIONSHIP_MODEL in MODEL | relationships(False) | models %}
-					<div class="form-group" 
-						ng-controller="{{ RELATIONSHIP_MODEL | controller }} as {{ RELATIONSHIP_MODEL | controller }}" >
-						
-						<label for="select-{{ MODEL | css }}-{{ RELATIONSHIP_MODEL | css }}">{{ RELATIONSHIP_MODEL | replace("_", " ") | title }}</label>
-						
-						<select id="select-{{ MODEL | css }}-{{ RELATIONSHIP_MODEL | css }}" 
-								class="form-control" 
-								ng-model="{{ MODEL | controller }}.{{ MODEL | camelCase }}.{{ RELATIONSHIP_MODEL | camelCase }}"
-								ng-options="{{ RELATIONSHIP_MODEL | camelCase }}.id as {{ RELATIONSHIP_MODEL | camelCase }}.name for {{ RELATIONSHIP_MODEL | camelCase }} in {{ RELATIONSHIP_MODEL | controller }}.{{ RELATIONSHIP_MODEL | plural }} track by {{ RELATIONSHIP_MODEL | camelCase }}.id"></select>
-					
-					</div><!-- /.form-group -->
-					{% endfor%}
-
-					{# note: show relationships is not array #}
-					
-					{% for RELATIONSHIP_MODEL in MODEL | relationships(true) | models %}
-					<div class="form-group" 
-						ng-controller="{{ RELATIONSHIP_MODEL | controller }} as {{ RELATIONSHIP_MODEL | controller }}" >
-						
-						<label for="checkbox-{{ MODEL | css }}-{{ RELATIONSHIP_MODEL | css }}">{{ RELATIONSHIP_MODEL | replace("_", " ") | title }}</label>
-						
-						<div class="checkbox"
-							ng-repeat="{{RELATIONSHIP_MODEL | camelCase }} in {{ RELATIONSHIP_MODEL | controller }}.{{ RELATIONSHIP_MODEL | plural }}">
-							
-							<label for="checkbox-{{ MODEL | css }}-{{ RELATIONSHIP_MODEL | css }}-{{'{{'}} {{ RELATIONSHIP_MODEL | camelCase }}.id {{'}}'}}">
-								
-								<input id="checkbox-{{ MODEL | css }}-{{ RELATIONSHIP_MODEL | css }}-{{'{{'}} {{ RELATIONSHIP_MODEL | camelCase }}.id {{'}}'}}" 
-									type="checkbox"
-									ng-model="{{ MODEL | controller }}.{{ MODEL | camelCase }}.{{ RELATIONSHIP_MODEL | plural }}[{{ RELATIONSHIP_MODEL | camelCase }}.id]">{{'{{'}} {{ RELATIONSHIP_MODEL | camelCase }}.name {{'}}'}}
-							
-							</label>
-						
-						</div><!-- /.checkbox -->
-
-					</div><!-- /.form-group -->
-					{% endfor%}
-
-
-					
-				</div><!-- /.box-body -->
-				
-				<div class="box-footer">
-
-					<button class="btn btn-success"
-							type="submit"
-							ng-click="{{ MODEL | controller }}.store({{ MODEL | controller }}.{{ MODEL }})"
-							ng-if="{{ MODEL | controller }}.mode == 'create'">Create</button>
-					
-					<button class="btn btn-warning"
-							type="submit"
-							ng-click="{{ MODEL | controller }}.update({{ MODEL | controller }}.{{ MODEL }})"
-							ng-if="{{ MODEL | controller }}.mode == 'edit'"   >Edit</button>
-				
-				</div><!-- /.box-footer -->
 			
-			</form>
+			<div class="nav-tabs-custom">
+                {% if CONFIG[MODEL]["translation"] == True %}
+                <ul class="nav nav-tabs" ng-init="{{ MODEL | controller }}.displayLanguage=HookController.ui.getLanguage()">
+                 
+                  <li ng-class="{ 'active': {{ MODEL | controller }}.displayLanguage==language.iso_2_code }"
+                  	ng-repeat="(id, language) in HookController.ui.getEnabledLanguages()">
+                  
+                  	<a href="" ng-click="{{ MODEL | controller }}.displayLanguage=language.iso_2_code">
+                  	
+                  		<span class="flag-icon flag-icon-{{'{{'}} language.flag {{'}}'}}"></span> 
+                  	
+                  		{{'{{'}} language.name | hookFilterContentTranslate {{'}}'}}
+                  	
+                  	</a>
+                 
+                  </li>
+                
+                </ul>
+				{% endif %}
+
+				<!-- form start -->
+				<form name="form"
+						role="form"
+						novalidate>
+
+					<div class="box-body">
+				
+						{% for FIELD in MODEL | structure %}
+							
+							{% if 'create' in MODEL | mode(FIELD) or 'edit' in MODEL | mode(FIELD) %}
+								{% if 'create' in MODEL | mode(FIELD) and 'edit' in MODEL | mode(FIELD) %}
+						<div class="form-group">
+								{% elif  'create' in MODEL | mode(FIELD) %}
+						<div class="form-group" 
+							ng-show="{{ MODEL | controller }}.mode == 'create'">
+								{% else %}
+						<div class="form-group"
+							ng-show="{{ MODEL | controller }}.mode == 'edit'" >
+								{% endif %}
+
+							<label for="{{ MODEL | type(FIELD) }}-{{ MODEL | kebabCase }}-{{ FIELD | kebabCase }}"
+								hook-form-label
+								hook-form-label-bind-form="form"
+								hook-form-label-bind-field="{{ FIELD }}"
+								{% if CONFIG[MODEL]["structure"][FIELD]["translation"] == True %}
+								hook-form-label-bind-flag="HookController.ui.getFlagByIso2Code({{ MODEL | controller }}.displayLanguage)"
+								{% endif %}
+								{% if "hook-validation-required" in MODEL | validation(FIELD) %}
+								hook-form-label-bind-required="true"
+								{% else %}
+								hook-form-label-bind-required="false"
+								{% endif %}
+								></label>
+								
+							<div hook-validation-message 
+								hook-validation-message-bind-form="form"
+								hook-validation-message-bind-field="{{ FIELD }}"></div>
+							
+							{% include "templates/common/attr_" + MODEL | type(FIELD) + ".j2" %}
+
+						
+						</div><!-- /.form-group -->
+							{% endif %}
+						{% endfor %}
+
+						{# note: show relationships is not array #}	
+						{% for ALIAS in MODEL | relationships(False) %}
+						<!-- Main model: {{ MODEL }}, Relationship alias: {{ ALIAS }}, Relationship model: {{ ALIAS | modelByAlias(MODEL) }} -->
+
+						<div class="form-group" 
+							ng-controller="{{ ALIAS | modelByAlias(MODEL) | controller }} as {{ ALIAS | modelByAlias(MODEL) | controller }}" >
+							
+							<label for="select-{{ MODEL | kebabCase }}-{{ ALIAS | kebabCase }}"
+								hook-form-label
+								hook-form-label-bind-form="form"
+								hook-form-label-bind-field="{{ ALIAS | snakeCase }}"
+								hook-form-label-bind-required="true"></label>
+							
+							<select id="select-{{ MODEL | kebabCase }}-{{ ALIAS | kebabCase }}" 
+									class="form-control" 
+									name="{{ ALIAS }}"
+									ng-model="{{ MODEL | controller }}.{{ MODEL | singular }}.{{ ALIAS }}"
+									ng-options="{{ ALIAS }}.id as ({{ ALIAS }}.name | hookFilterContentTranslate) for {{ ALIAS }} in {{ ALIAS | modelByAlias(MODEL) | controller }}.{{ ALIAS | modelByAlias(MODEL) | plural }} track by {{ ALIAS }}.id"></select>
+						
+						</div><!-- /.form-group -->
+
+						{% endfor%}
+						{# note: show relationships is array #}		
+						{% for ALIAS in MODEL | relationships(true) %}
+						<!-- Main model: {{ MODEL }}, Relationship alias: {{ ALIAS }}, Relationship model: {{ ALIAS | modelByAlias(MODEL) }} -->
+
+						<div class="form-group" 
+							ng-controller="{{ ALIAS | modelByAlias(MODEL) | controller }} as {{ ALIAS | modelByAlias(MODEL) | controller }}" >
+							
+							<label for="checkbox-{{ MODEL | kebabCase }}-{{ ALIAS | modelByAlias(MODEL) | singular | kebabCase }}"
+								hook-form-label
+								hook-form-label-bind-form="form"
+								hook-form-label-bind-field="{{ ALIAS | snakeCase }}"
+								hook-form-label-bind-required="false"></label>
+							
+							<div class="checkbox"
+								ng-repeat="{{ ALIAS | modelByAlias(MODEL) | singular }} in {{ ALIAS | modelByAlias(MODEL) | controller }}.{{ ALIAS | modelByAlias(MODEL) | plural }}">
+								
+								<label for="checkbox-{{ MODEL | kebabCase }}-{{ ALIAS | modelByAlias(MODEL) | singular | kebabCase }}-{{'{{'}} {{ ALIAS | modelByAlias(MODEL) | singular }}.id {{'}}'}}">
+									
+									<input id="checkbox-{{ MODEL | kebabCase }}-{{ ALIAS | modelByAlias(MODEL) | singular | kebabCase }}-{{'{{'}} {{ ALIAS | modelByAlias(MODEL) | singular }}.id {{'}}'}}" 
+										type="checkbox"
+										ng-model="{{ MODEL | controller }}.{{ MODEL | camelCase }}.{{ ALIAS }}[{{ ALIAS | modelByAlias(MODEL) | singular }}.id]">{{'{{'}} {{ ALIAS | modelByAlias(MODEL) | singular }}.name | hookFilterContentTranslate {{'}}'}}
+								
+								</label>
+							
+							</div><!-- /.checkbox -->
+
+						</div><!-- /.form-group -->
+						
+
+						{% endfor %}	
+					
+					</div><!-- ./box-body -->
+
+					<div class="box-footer" 
+						hook-form-button
+						hook-form-button-bind-form="form"
+						hook-form-button-bind-controller="{{ MODEL | controller }}"></div><!-- /.box-footer -->
+
+				</form>
+
+            </div><!-- ./nav-tabs-custom -->
+		
 		</div><!-- /.box -->
 
  	</div><!-- /.col -->
+
+ 	{% if CONFIG[MODEL]["translation"] == True %}
+	<div class="col-md-4"
+		hook-translation-view
+		hook-translation-view-bind-model="{{ MODEL | controller }}.{{ MODEL | singular }}"
+		hook-translation-view-bind-get-language="HookController.ui.getLanguage()"
+		hook-translation-view-bind-get-enabled-languages="HookController.ui.getEnabledLanguages()"></div><!-- /.col -->
+ 	{% endif %}
+
 </div><!-- /.row -->

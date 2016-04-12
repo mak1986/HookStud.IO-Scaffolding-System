@@ -1,0 +1,5 @@
+							<select id="select-{{ MODEL | kebabCase }}-{{ FIELD | kebabCase }}" 
+									class="form-control" 
+									name="{{ FIELD }}"
+									ng-model="{{ MODEL | controller }}.{{ MODEL | singular }}.{{ FIELD }}"
+									ng-options="{{ MODEL | singular }}.id as {{ MODEL | singular }}.name for {{ MODEL | singular }} in SomeObjects track by {{ MODEL | singular }}.id"></select>
